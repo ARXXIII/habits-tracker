@@ -1,19 +1,27 @@
 {
-  "name": "habits-tracker",
-  "module": "index.ts",
-  "type": "module",
-  "devDependencies": {
-    "@graphql-codegen/typescript": "^4.1.6",
-    "@types/bun": "latest"
-  },
-  "peerDependencies": {
-    "typescript": "^5.0.0"
-  },
-  "dependencies": {
-    "dataloader": "^2.2.3",
-    "dotenv": "^17.2.1",
-    "graphql": "^16.11.0",
-    "graphql-yoga": "^5.15.1",
-    "mongoose": "^8.17.2"
-  }
+	"name": "habits-tracker",
+	"module": "index.ts",
+	"type": "module",
+	"scripts": {
+		"dev": "bun --watch src/index.ts",
+		"start": "bun run src/index.ts",
+		"codegen": "graphql-codegen --config codegen.yml",
+		"typecheck": "tsc --noEmit"
+	},
+	"devDependencies": {
+		"@graphql-codegen/cli": "^5.0.7",
+		"@graphql-codegen/typescript": "^4.1.6",
+		"@graphql-codegen/typescript-resolvers": "^4.5.1",
+		"@types/bun": "latest"
+	},
+	"peerDependencies": {
+		"typescript": "^5.9.2"
+	},
+	"dependencies": {
+		"dataloader": "^2.2.3",
+		"dotenv": "^17.2.1",
+		"graphql": "^16.11.0",
+		"graphql-yoga": "^5.15.1",
+		"mongoose": "^8.17.2"
+	}
 }
