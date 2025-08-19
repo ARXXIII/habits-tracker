@@ -8,7 +8,7 @@ const HabitLogSchema = new Schema(
       required: true,
       index: true,
     },
-    data: { type: Date, required: true },
+    date: { type: Date, required: true },
     completed: { type: Boolean, default: true },
     createdAt: { type: Date, default: () => new Date() },
   },
