@@ -1,11 +1,12 @@
-import { createServer } from 'node:http'
-import { createYoga, createSchema } from 'graphql-yoga'
-import { readFileSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
+import { createServer } from 'node:http'
+import { readFileSync, readdirSync } from 'node:fs'
+import { config } from './config'
 import { connectDB } from './db'
 import { resolvers } from './resolvers'
-import { createLogsByHabitLoader } from './loader/logsByHabit'
-import { config } from './config'
+import { createYoga, createSchema } from 'graphql-yoga'
+import { createLogsByHabitLoader } from './loaders/logsByHabit'
+import type { GraphQLContext } from './types'
 
 const schemaDir = join(process.cwd(), 'src', 'graphql')
 const typeDefs = readdirSync(schemaDir)
@@ -13,10 +14,17 @@ const typeDefs = readdirSync(schemaDir)
   .map((f) => readFileSync(join(schemaDir, f), 'utf-8'))
   .join('\n')
 
-const yoga = createYoga({
-  schema: createSchema({ typeDefs, resolvers }),
+const schema = createSchema<GraphQLContext>({
+  typeDefs,
+  resolvers,
+})
+
+const yoga = createYoga<GraphQLContext>({
+  schema,
   context: async () => ({
-    loaders: createLogsByHabitLoader(),
+    loaders: {
+      logsByHabit: createLogsByHabitLoader(),
+    },
   }),
 })
 
