@@ -1,0 +1,33 @@
+scalar Date
+
+type Query {
+  health: String!
+  habits: [Habit]!
+  habit(id: ID!): Habit
+}
+
+input CreateHabit {
+  title: String!
+  description: String
+}
+
+type Mutation {
+  createHabit(input: CreateHabit): Habit!
+  logHabit(habitId: ID!, date: Date!): HabitLog!
+}
+
+type Habit {
+  id: ID!
+  title: String!
+  description: String
+  createdAt: Date!
+  logs: [HabitLog!]!
+}
+
+type HabitLog {
+  id: ID!
+  habitId: ID!
+  data: Date!
+  completed: Boolean!
+  createdAt: Date!
+}
