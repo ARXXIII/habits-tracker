@@ -13,7 +13,8 @@ input CreateHabit {
 
 type Mutation {
   createHabit(input: CreateHabit): Habit!
-  logHabit(habitId: ID!, date: Date!): HabitLog!
+  markHabitCompleted(habitId: ID!, date: Date): HabitLog!
+  markHabitUncompleted(habitId: ID!, date: Date): HabitLog!
 }
 
 type Habit {
@@ -27,7 +28,7 @@ type Habit {
 type HabitLog {
   id: ID!
   habitId: ID!
-  data: Date!
+  date: Date!
   completed: Boolean!
   createdAt: Date!
 }
