@@ -57,7 +57,7 @@ export type HabitLog = {
   __typename?: 'HabitLog'
   completed: Scalars['Boolean']['output']
   createdAt: Scalars['Date']['output']
-  data: Scalars['Date']['output']
+  date: Scalars['Date']['output']
   habitId: Scalars['ID']['output']
   id: Scalars['ID']['output']
 }
@@ -65,15 +65,21 @@ export type HabitLog = {
 export type Mutation = {
   __typename?: 'Mutation'
   createHabit: Habit
-  logHabit: HabitLog
+  markHabitCompleted: HabitLog
+  markHabitUncompleted: HabitLog
 }
 
 export type MutationCreateHabitArgs = {
   input?: InputMaybe<CreateHabit>
 }
 
-export type MutationLogHabitArgs = {
-  date: Scalars['Date']['input']
+export type MutationMarkHabitCompletedArgs = {
+  date?: InputMaybe<Scalars['Date']['input']>
+  habitId: Scalars['ID']['input']
+}
+
+export type MutationMarkHabitUncompletedArgs = {
+  date?: InputMaybe<Scalars['Date']['input']>
   habitId: Scalars['ID']['input']
 }
 
@@ -246,7 +252,7 @@ export type HabitLogResolvers<
 > = {
   completed?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>
   createdAt?: Resolver<ResolversTypes['Date'], ParentType, ContextType>
-  data?: Resolver<ResolversTypes['Date'], ParentType, ContextType>
+  date?: Resolver<ResolversTypes['Date'], ParentType, ContextType>
   habitId?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>
@@ -262,11 +268,17 @@ export type MutationResolvers<
     ContextType,
     Partial<MutationCreateHabitArgs>
   >
-  logHabit?: Resolver<
+  markHabitCompleted?: Resolver<
     ResolversTypes['HabitLog'],
     ParentType,
     ContextType,
-    RequireFields<MutationLogHabitArgs, 'date' | 'habitId'>
+    RequireFields<MutationMarkHabitCompletedArgs, 'habitId'>
+  >
+  markHabitUncompleted?: Resolver<
+    ResolversTypes['HabitLog'],
+    ParentType,
+    ContextType,
+    RequireFields<MutationMarkHabitUncompletedArgs, 'habitId'>
   >
 }
 
