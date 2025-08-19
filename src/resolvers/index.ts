@@ -4,6 +4,10 @@ import { Habit } from '../models/habit'
 import { HabitLog } from '../models/habitLog'
 import { toUtc } from '../utils/date'
 
+const normalize = (date: string) => {
+  return toUtc(String(date))
+}
+
 export const DateScalar = new GraphQLScalarType({
   name: 'Date',
   serialize: (value: unknown) => {
@@ -38,13 +42,27 @@ export const resolvers: Resolvers = {
       })
       return { id: String(doc.id), ...doc.toObject() }
     },
-    logHabit: async (_p, { habitId, date }) => {
-      const normalize = toUtc(String(date))
+    markHabitCompleted: async (_p, { habitId, date }) => {
       try {
         const log = await HabitLog.create({
           habitId,
-          date: normalize,
+          date: date ? normalize(date) : new Date(),
           completed: true,
+        })
+        return { id: String(log.id), ...log.toObject() }
+      } catch (err: any) {
+        if (err?.code === 11000) {
+          throw new Error('LOG_ALREADY_EXIST_FOR_THIS_DAY')
+        }
+        throw err
+      }
+    },
+    markHabitUncompleted: async (_p, { habitId, date }) => {
+      try {
+        const log = await HabitLog.create({
+          habitId,
+          date: date ? normalize(date) : new Date(),
+          completed: false,
         })
         return { id: String(log.id), ...log.toObject() }
       } catch (err: any) {
