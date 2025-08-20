@@ -1,34 +1,57 @@
 scalar Date
+scalar ObjectId
 
 type Query {
   health: String!
   habits: [Habit]!
-  habit(id: ID!): Habit
+  habit(id: ObjectId!): Habit
 }
 
-input CreateHabit {
-  title: String!
-  description: String
+enum Status {
+  COMPLETED
+  FAILED
 }
 
-type Mutation {
-  createHabit(input: CreateHabit): Habit!
-  markHabitCompleted(habitId: ID!, date: Date): HabitLog!
-  markHabitUncompleted(habitId: ID!, date: Date): HabitLog!
+enum Regularity {
+  DAILY
+  WEEKLY
+  MONTHLY
 }
 
 type Habit {
-  id: ID!
+  id: ObjectId!
   title: String!
   description: String
+  regularity: Regularity
   createdAt: Date!
   logs: [HabitLog!]!
 }
 
 type HabitLog {
-  id: ID!
-  habitId: ID!
-  date: Date!
-  completed: Boolean!
+  id: ObjectId!
+  habitId: ObjectId!
+  status: Status
   createdAt: Date!
 }
+
+type HabitLogAlreadyExists {
+  message: String!
+  existingLogId: ObjectId
+}
+
+type HabitLogNotFound {
+  message: String!
+}
+
+input CreateHabit {
+  title: String!
+  description: String
+  regularity: Regularity
+}
+
+type Mutation {
+  createHabit(input: CreateHabit!): Habit!
+  updateHabitStatus(habitId: ObjectId!, status: Status): UpdateHabitStatus!
+}
+
+union UpdateHabitStatus = HabitLog | HabitLogAlreadyExists

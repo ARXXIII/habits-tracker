@@ -8,14 +8,18 @@ const HabitLogSchema = new Schema(
       required: true,
       index: true,
     },
-    date: { type: Date, required: true },
-    completed: { type: Boolean, default: true },
+    status: {
+      type: String,
+      enum: ['COMPLETED', 'FAILED'],
+      required: true,
+      default: 'COMPLETED',
+    },
     createdAt: { type: Date, default: () => new Date() },
   },
   { versionKey: false },
 )
 
-HabitLogSchema.index({ habitId: 1, date: 1 }, { unique: true })
+HabitLogSchema.index({ habitId: 1, createdAt: 1 }, { unique: true })
 
 export type HabitLogDoc = InferSchemaType<typeof HabitLogSchema> & {
   _id: Types.ObjectId

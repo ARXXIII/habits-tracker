@@ -4,6 +4,12 @@ const HabitSchema = new Schema(
   {
     title: { type: String, required: true, trim: true },
     description: { type: String, default: null },
+    regularity: {
+      type: String,
+      enum: ['DAILY', 'WEEKLY', 'MONTHLY'],
+      required: true,
+      default: 'DAILY',
+    },
     createdAt: { type: Date, default: () => new Date() },
   },
   { versionKey: false },
