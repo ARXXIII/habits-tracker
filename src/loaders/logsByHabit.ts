@@ -4,7 +4,7 @@ import { HabitLog, type HabitLogDoc } from '../models/habitLog'
 import type { Types } from 'mongoose'
 
 export function createLogsByHabitLoader() {
-  return new DataLoader<string, HabitLogDoc[]>(async (habitIds) => {
+  return new DataLoader<string, HabitLogDoc[], string>(async (habitIds) => {
     const objectIds = habitIds.map((id) => id as unknown as Types.ObjectId)
     const logs = await HabitLog.find({ habitId: { $in: objectIds } })
       .sort({ date: 1 })
