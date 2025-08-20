@@ -1,11 +1,15 @@
+import cron from 'node-cron'
 import { join } from 'node:path'
 import { createServer } from 'node:http'
 import { readFileSync, readdirSync } from 'node:fs'
-import { config } from './config'
-import { connectDB } from './db'
-import { resolvers } from './resolvers'
 import { createYoga, createSchema } from 'graphql-yoga'
+
+import { connectDB } from './db'
+import { config } from './config'
+import { resolvers } from './resolvers'
+import { expireHabitLogs } from './cron/expireHabitLogs'
 import { createLogsByHabitLoader } from './loaders/logsByHabit'
+
 import type { GraphQLContext } from './types'
 
 const schemaDir = join(process.cwd(), 'src', 'graphql')
@@ -29,6 +33,26 @@ const yoga = createYoga<GraphQLContext>({
 })
 
 await connectDB()
+
+// Prod
+// cron.schedule('0 59 23 * * *', async () => {
+//   try {
+//     await expireHabitLogs()
+//     console.log('Habit logs expiration executed successfully')
+//   } catch (err) {
+//     console.error('Error while expiring habit logs:', err)
+//   }
+// })
+
+// Dev
+cron.schedule('0 * * * * *', async () => {
+  try {
+    await expireHabitLogs()
+    console.log('Habit logs expiration executed successfully')
+  } catch (err) {
+    console.error('Error while expiring habit logs:', err)
+  }
+})
 
 const server = createServer(yoga)
 server.listen(config.port, () => {
