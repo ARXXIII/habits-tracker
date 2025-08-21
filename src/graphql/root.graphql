@@ -7,6 +7,13 @@ type Query {
   habit(id: ObjectId!): Habit
 }
 
+type Mutation {
+  createHabit(input: CreateHabit!): Habit!
+  logHabit(habitId: ObjectId!, status: Status): LogHabit!
+}
+
+union LogHabit = HabitLog | HabitLogAlreadyExists | HabitNotFoundError
+
 enum Status {
   COMPLETED
   FAILED
@@ -16,6 +23,12 @@ enum Regularity {
   DAILY
   WEEKLY
   MONTHLY
+}
+
+input CreateHabit {
+  title: String!
+  description: String
+  regularity: Regularity
 }
 
 type Habit {
@@ -35,23 +48,16 @@ type HabitLog {
 }
 
 type HabitLogAlreadyExists {
-  message: String!
-  existingLogId: ObjectId
-}
-
-type HabitLogNotFound {
+  logId: ObjectId
   message: String!
 }
 
-input CreateHabit {
-  title: String!
-  description: String
-  regularity: Regularity
+type InvalidInputError {
+  field: String!
+  message: String!
 }
 
-type Mutation {
-  createHabit(input: CreateHabit!): Habit!
-  updateHabitStatus(habitId: ObjectId!, status: Status): UpdateHabitStatus!
+type HabitNotFoundError {
+  habitId: ObjectId!
+  message: String!
 }
-
-union UpdateHabitStatus = HabitLog | HabitLogAlreadyExists
