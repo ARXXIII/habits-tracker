@@ -6,8 +6,10 @@ generates:
       - typescript-resolvers
     config:
       contextType: '../types#GraphQLContext'
+      useTypeImports: true
       scalars:
         Date: string
+        ObjectId: mongoose#Types.ObjectId
       mappers:
-        Habit: './models/habit#HabitLean'
-        HabitLog: './models/habitLog#HabitLogLean'
+        Habit: '../models/habit#HabitLean'
+        HabitLog: '../models/habit-log#HabitLogLean'
