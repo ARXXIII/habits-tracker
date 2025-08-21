@@ -1,5 +1,5 @@
 import { Habit } from '../models/habit'
-import { HabitLog } from '../models/habitLog'
+import { HabitLog } from '../models/habit-log'
 import { getPeriod } from '../utils/date'
 
 export async function expireHabitLogs() {

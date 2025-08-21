@@ -7,8 +7,8 @@ import { createYoga, createSchema } from 'graphql-yoga'
 import { connectDB } from './db'
 import { config } from './config'
 import { resolvers } from './resolvers'
-import { expireHabitLogs } from './cron/expireHabitLogs'
-import { createLogsByHabitLoader } from './loaders/logsByHabit'
+import { expireHabitLogs } from './cron/expire-habit-logs'
+import { createLogsByHabitLoader } from './loaders/logs-by-habit'
 
 import type { GraphQLContext } from './types'
 

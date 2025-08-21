@@ -1,5 +1,5 @@
 import DataLoader from 'dataloader'
-import { HabitLog, type HabitLogDoc } from '../models/habitLog'
+import { HabitLog, type HabitLogDoc } from '../models/habit-log'
 
 import type { Types } from 'mongoose'
 

@@ -1,5 +1,5 @@
 import type DataLoader from 'dataloader'
-import type { HabitLogDoc } from './models/habitLog'
+import type { HabitLogDoc } from './models/habit-log'
 
 export type Loaders = {
   logsByHabit: DataLoader<string, HabitLogDoc[], string>
