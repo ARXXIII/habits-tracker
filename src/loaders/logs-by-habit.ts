@@ -7,7 +7,7 @@ export function createLogsByHabitLoader() {
   return new DataLoader<string, HabitLogDoc[], string>(async (habitIds) => {
     const objectIds = habitIds.map((id) => id as unknown as Types.ObjectId)
     const logs = await HabitLog.find({ habitId: { $in: objectIds } })
-      .sort({ date: 1 })
+      .sort({ createdAt: 1 })
       .lean()
 
     const map = new Map<string, HabitLogDoc[]>()
@@ -16,6 +16,7 @@ export function createLogsByHabitLoader() {
       const key = String(log.habitId)
       map.get(key)!.push(log as HabitLogDoc)
     }
+
     return habitIds.map((id) => map.get(id)!)
   })
 }
