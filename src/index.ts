@@ -9,6 +9,7 @@ import { config } from './config'
 import { resolvers } from './resolvers'
 import { expireHabitLogs } from './cron/expire-habit-logs'
 import { createLogsByHabitLoader } from './loaders/logs-by-habit'
+import { createHabitsByUserLoader } from './loaders/habits-by-user'
 
 import type { GraphQLContext } from './types'
 
@@ -28,29 +29,19 @@ const yoga = createYoga<GraphQLContext>({
   context: async () => ({
     loaders: {
       logsByHabit: createLogsByHabitLoader(),
+      habitsByUser: createHabitsByUserLoader(),
     },
   }),
 })
 
 await connectDB()
 
-// Prod
-// cron.schedule('0 59 23 * * *', async () => {
-//   try {
-//     await expireHabitLogs()
-//     console.log('Habit logs expiration executed successfully')
-//   } catch (err) {
-//     console.error('Error while expiring habit logs:', err)
-//   }
-// })
-
 // Dev
 cron.schedule('0 * * * * *', async () => {
   try {
     await expireHabitLogs()
-    console.log('Habit logs expiration executed successfully')
   } catch (err) {
-    console.error('Error while expiring habit logs:', err)
+    console.error('Error while expiring habit logs', err)
   }
 })
 
