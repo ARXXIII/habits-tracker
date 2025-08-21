@@ -3,16 +3,32 @@ scalar ObjectId
 
 type Query {
   health: String!
-  habits: [Habit]!
+  user(id: ObjectId!): User
+  users: [User!]!
   habit(id: ObjectId!): Habit
+  habits: [Habit]!
+  habitsByUser(userId: ObjectId!): [Habit!]!
 }
 
 type Mutation {
+  createUser(input: CreateUser!): User!
+  deleteUser(id: ObjectId!): UserUnion!
+  updateUser(
+    id: ObjectId!
+    username: String
+    firstName: String
+    lastName: String
+  ): UserUnion!
   createHabit(input: CreateHabit!): Habit!
-  logHabit(habitId: ObjectId!, status: Status): LogHabit!
+  logHabit(
+    userId: ObjectId!
+    habitId: ObjectId!
+    status: Status
+  ): LogHabitUnion!
 }
 
-union LogHabit = HabitLog | HabitLogAlreadyExists | HabitNotFoundError
+union UserUnion = User | NotFoundError
+union LogHabitUnion = HabitLog | HabitLogAlreadyExists | NotFoundError
 
 enum Status {
   COMPLETED
@@ -25,7 +41,31 @@ enum Regularity {
   MONTHLY
 }
 
+input CreateUser {
+  email: String!
+  username: String!
+  firstName: String
+  lastName: String
+}
+
+type User {
+  id: ObjectId!
+  email: String!
+  username: String!
+  firstName: String
+  lastName: String
+  createdAt: Date!
+  updatedAt: Date
+  habits: [Habit!]!
+}
+
+type NotFoundError {
+  id: ObjectId!
+  message: String!
+}
+
 input CreateHabit {
+  userId: ObjectId!
   title: String!
   description: String
   regularity: Regularity
@@ -33,6 +73,7 @@ input CreateHabit {
 
 type Habit {
   id: ObjectId!
+  userId: ObjectId!
   title: String!
   description: String
   regularity: Regularity
@@ -52,12 +93,7 @@ type HabitLogAlreadyExists {
   message: String!
 }
 
-type InvalidInputError {
-  field: String!
-  message: String!
-}
-
-type HabitNotFoundError {
-  habitId: ObjectId!
+type UserNotFoundError {
+  userId: ObjectId!
   message: String!
 }

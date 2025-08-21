@@ -1,7 +1,7 @@
-import type { Types } from 'mongoose';
 import type { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
 import type { HabitLean } from '../models/habit';
 import type { HabitLogLean } from '../models/habit-log';
+import type { UserLean } from '../models/user';
 import type { GraphQLContext } from '../types';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
@@ -19,13 +19,21 @@ export type Scalars = {
   Int: { input: number; output: number; }
   Float: { input: number; output: number; }
   Date: { input: string; output: string; }
-  ObjectId: { input: Types.ObjectId; output: Types.ObjectId; }
+  ObjectId: { input: string; output: string; }
 };
 
 export type CreateHabit = {
   description?: InputMaybe<Scalars['String']['input']>;
   regularity?: InputMaybe<Regularity>;
   title: Scalars['String']['input'];
+  userId: Scalars['ObjectId']['input'];
+};
+
+export type CreateUser = {
+  email: Scalars['String']['input'];
+  firstName?: InputMaybe<Scalars['String']['input']>;
+  lastName?: InputMaybe<Scalars['String']['input']>;
+  username: Scalars['String']['input'];
 };
 
 export type Habit = {
@@ -36,6 +44,7 @@ export type Habit = {
   logs: Array<HabitLog>;
   regularity?: Maybe<Regularity>;
   title: Scalars['String']['output'];
+  userId: Scalars['ObjectId']['output'];
 };
 
 export type HabitLog = {
@@ -52,24 +61,15 @@ export type HabitLogAlreadyExists = {
   message: Scalars['String']['output'];
 };
 
-export type HabitNotFoundError = {
-  __typename?: 'HabitNotFoundError';
-  habitId: Scalars['ObjectId']['output'];
-  message: Scalars['String']['output'];
-};
-
-export type InvalidInputError = {
-  __typename?: 'InvalidInputError';
-  field: Scalars['String']['output'];
-  message: Scalars['String']['output'];
-};
-
-export type LogHabit = HabitLog | HabitLogAlreadyExists | HabitNotFoundError;
+export type LogHabitUnion = HabitLog | HabitLogAlreadyExists | NotFoundError;
 
 export type Mutation = {
   __typename?: 'Mutation';
   createHabit: Habit;
-  logHabit: LogHabit;
+  createUser: User;
+  deleteUser: UserUnion;
+  logHabit: LogHabitUnion;
+  updateUser: UserUnion;
 };
 
 
@@ -78,20 +78,58 @@ export type MutationCreateHabitArgs = {
 };
 
 
+export type MutationCreateUserArgs = {
+  input: CreateUser;
+};
+
+
+export type MutationDeleteUserArgs = {
+  id: Scalars['ObjectId']['input'];
+};
+
+
 export type MutationLogHabitArgs = {
   habitId: Scalars['ObjectId']['input'];
   status?: InputMaybe<Status>;
+  userId: Scalars['ObjectId']['input'];
+};
+
+
+export type MutationUpdateUserArgs = {
+  firstName?: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['ObjectId']['input'];
+  lastName?: InputMaybe<Scalars['String']['input']>;
+  username?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type NotFoundError = {
+  __typename?: 'NotFoundError';
+  id: Scalars['ObjectId']['output'];
+  message: Scalars['String']['output'];
 };
 
 export type Query = {
   __typename?: 'Query';
   habit?: Maybe<Habit>;
   habits: Array<Maybe<Habit>>;
+  habitsByUser: Array<Habit>;
   health: Scalars['String']['output'];
+  user?: Maybe<User>;
+  users: Array<User>;
 };
 
 
 export type QueryHabitArgs = {
+  id: Scalars['ObjectId']['input'];
+};
+
+
+export type QueryHabitsByUserArgs = {
+  userId: Scalars['ObjectId']['input'];
+};
+
+
+export type QueryUserArgs = {
   id: Scalars['ObjectId']['input'];
 };
 
@@ -105,6 +143,26 @@ export enum Status {
   Completed = 'COMPLETED',
   Failed = 'FAILED'
 }
+
+export type User = {
+  __typename?: 'User';
+  createdAt: Scalars['Date']['output'];
+  email: Scalars['String']['output'];
+  firstName?: Maybe<Scalars['String']['output']>;
+  habits: Array<Habit>;
+  id: Scalars['ObjectId']['output'];
+  lastName?: Maybe<Scalars['String']['output']>;
+  updatedAt?: Maybe<Scalars['Date']['output']>;
+  username: Scalars['String']['output'];
+};
+
+export type UserNotFoundError = {
+  __typename?: 'UserNotFoundError';
+  message: Scalars['String']['output'];
+  userId: Scalars['ObjectId']['output'];
+};
+
+export type UserUnion = NotFoundError | User;
 
 
 
@@ -175,7 +233,8 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 
 /** Mapping of union types */
 export type ResolversUnionTypes<_RefType extends Record<string, unknown>> = {
-  LogHabit: ( HabitLogLean ) | ( HabitLogAlreadyExists ) | ( HabitNotFoundError );
+  LogHabitUnion: ( HabitLogLean ) | ( HabitLogAlreadyExists ) | ( NotFoundError );
+  UserUnion: ( NotFoundError ) | ( UserLean );
 };
 
 
@@ -183,36 +242,42 @@ export type ResolversUnionTypes<_RefType extends Record<string, unknown>> = {
 export type ResolversTypes = {
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   CreateHabit: CreateHabit;
+  CreateUser: CreateUser;
   Date: ResolverTypeWrapper<Scalars['Date']['output']>;
   Habit: ResolverTypeWrapper<HabitLean>;
   HabitLog: ResolverTypeWrapper<HabitLogLean>;
   HabitLogAlreadyExists: ResolverTypeWrapper<HabitLogAlreadyExists>;
-  HabitNotFoundError: ResolverTypeWrapper<HabitNotFoundError>;
-  InvalidInputError: ResolverTypeWrapper<InvalidInputError>;
-  LogHabit: ResolverTypeWrapper<ResolversUnionTypes<ResolversTypes>['LogHabit']>;
+  LogHabitUnion: ResolverTypeWrapper<ResolversUnionTypes<ResolversTypes>['LogHabitUnion']>;
   Mutation: ResolverTypeWrapper<{}>;
+  NotFoundError: ResolverTypeWrapper<NotFoundError>;
   ObjectId: ResolverTypeWrapper<Scalars['ObjectId']['output']>;
   Query: ResolverTypeWrapper<{}>;
   Regularity: Regularity;
   Status: Status;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
+  User: ResolverTypeWrapper<UserLean>;
+  UserNotFoundError: ResolverTypeWrapper<UserNotFoundError>;
+  UserUnion: ResolverTypeWrapper<ResolversUnionTypes<ResolversTypes>['UserUnion']>;
 };
 
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = {
   Boolean: Scalars['Boolean']['output'];
   CreateHabit: CreateHabit;
+  CreateUser: CreateUser;
   Date: Scalars['Date']['output'];
   Habit: HabitLean;
   HabitLog: HabitLogLean;
   HabitLogAlreadyExists: HabitLogAlreadyExists;
-  HabitNotFoundError: HabitNotFoundError;
-  InvalidInputError: InvalidInputError;
-  LogHabit: ResolversUnionTypes<ResolversParentTypes>['LogHabit'];
+  LogHabitUnion: ResolversUnionTypes<ResolversParentTypes>['LogHabitUnion'];
   Mutation: {};
+  NotFoundError: NotFoundError;
   ObjectId: Scalars['ObjectId']['output'];
   Query: {};
   String: Scalars['String']['output'];
+  User: UserLean;
+  UserNotFoundError: UserNotFoundError;
+  UserUnion: ResolversUnionTypes<ResolversParentTypes>['UserUnion'];
 };
 
 export interface DateScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['Date'], any> {
@@ -226,6 +291,7 @@ export type HabitResolvers<ContextType = GraphQLContext, ParentType extends Reso
   logs?: Resolver<Array<ResolversTypes['HabitLog']>, ParentType, ContextType>;
   regularity?: Resolver<Maybe<ResolversTypes['Regularity']>, ParentType, ContextType>;
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  userId?: Resolver<ResolversTypes['ObjectId'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -243,25 +309,22 @@ export type HabitLogAlreadyExistsResolvers<ContextType = GraphQLContext, ParentT
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
-export type HabitNotFoundErrorResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['HabitNotFoundError'] = ResolversParentTypes['HabitNotFoundError']> = {
-  habitId?: Resolver<ResolversTypes['ObjectId'], ParentType, ContextType>;
-  message?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
-
-export type InvalidInputErrorResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['InvalidInputError'] = ResolversParentTypes['InvalidInputError']> = {
-  field?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  message?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-};
-
-export type LogHabitResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['LogHabit'] = ResolversParentTypes['LogHabit']> = {
-  __resolveType: TypeResolveFn<'HabitLog' | 'HabitLogAlreadyExists' | 'HabitNotFoundError', ParentType, ContextType>;
+export type LogHabitUnionResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['LogHabitUnion'] = ResolversParentTypes['LogHabitUnion']> = {
+  __resolveType: TypeResolveFn<'HabitLog' | 'HabitLogAlreadyExists' | 'NotFoundError', ParentType, ContextType>;
 };
 
 export type MutationResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   createHabit?: Resolver<ResolversTypes['Habit'], ParentType, ContextType, RequireFields<MutationCreateHabitArgs, 'input'>>;
-  logHabit?: Resolver<ResolversTypes['LogHabit'], ParentType, ContextType, RequireFields<MutationLogHabitArgs, 'habitId'>>;
+  createUser?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<MutationCreateUserArgs, 'input'>>;
+  deleteUser?: Resolver<ResolversTypes['UserUnion'], ParentType, ContextType, RequireFields<MutationDeleteUserArgs, 'id'>>;
+  logHabit?: Resolver<ResolversTypes['LogHabitUnion'], ParentType, ContextType, RequireFields<MutationLogHabitArgs, 'habitId' | 'userId'>>;
+  updateUser?: Resolver<ResolversTypes['UserUnion'], ParentType, ContextType, RequireFields<MutationUpdateUserArgs, 'id'>>;
+};
+
+export type NotFoundErrorResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['NotFoundError'] = ResolversParentTypes['NotFoundError']> = {
+  id?: Resolver<ResolversTypes['ObjectId'], ParentType, ContextType>;
+  message?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export interface ObjectIdScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['ObjectId'], any> {
@@ -271,7 +334,32 @@ export interface ObjectIdScalarConfig extends GraphQLScalarTypeConfig<ResolversT
 export type QueryResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   habit?: Resolver<Maybe<ResolversTypes['Habit']>, ParentType, ContextType, RequireFields<QueryHabitArgs, 'id'>>;
   habits?: Resolver<Array<Maybe<ResolversTypes['Habit']>>, ParentType, ContextType>;
+  habitsByUser?: Resolver<Array<ResolversTypes['Habit']>, ParentType, ContextType, RequireFields<QueryHabitsByUserArgs, 'userId'>>;
   health?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QueryUserArgs, 'id'>>;
+  users?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType>;
+};
+
+export type UserResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['User'] = ResolversParentTypes['User']> = {
+  createdAt?: Resolver<ResolversTypes['Date'], ParentType, ContextType>;
+  email?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  firstName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  habits?: Resolver<Array<ResolversTypes['Habit']>, ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ObjectId'], ParentType, ContextType>;
+  lastName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  updatedAt?: Resolver<Maybe<ResolversTypes['Date']>, ParentType, ContextType>;
+  username?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type UserNotFoundErrorResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['UserNotFoundError'] = ResolversParentTypes['UserNotFoundError']> = {
+  message?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  userId?: Resolver<ResolversTypes['ObjectId'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type UserUnionResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['UserUnion'] = ResolversParentTypes['UserUnion']> = {
+  __resolveType: TypeResolveFn<'NotFoundError' | 'User', ParentType, ContextType>;
 };
 
 export type Resolvers<ContextType = GraphQLContext> = {
@@ -279,11 +367,13 @@ export type Resolvers<ContextType = GraphQLContext> = {
   Habit?: HabitResolvers<ContextType>;
   HabitLog?: HabitLogResolvers<ContextType>;
   HabitLogAlreadyExists?: HabitLogAlreadyExistsResolvers<ContextType>;
-  HabitNotFoundError?: HabitNotFoundErrorResolvers<ContextType>;
-  InvalidInputError?: InvalidInputErrorResolvers<ContextType>;
-  LogHabit?: LogHabitResolvers<ContextType>;
+  LogHabitUnion?: LogHabitUnionResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
+  NotFoundError?: NotFoundErrorResolvers<ContextType>;
   ObjectId?: GraphQLScalarType;
   Query?: QueryResolvers<ContextType>;
+  User?: UserResolvers<ContextType>;
+  UserNotFoundError?: UserNotFoundErrorResolvers<ContextType>;
+  UserUnion?: UserUnionResolvers<ContextType>;
 };
 
