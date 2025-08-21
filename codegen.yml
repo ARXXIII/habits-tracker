@@ -9,7 +9,8 @@ generates:
       useTypeImports: true
       scalars:
         Date: string
-        ObjectId: mongoose#Types.ObjectId
+        ObjectId: string
       mappers:
         Habit: '../models/habit#HabitLean'
         HabitLog: '../models/habit-log#HabitLogLean'
+        User: '../models/user#UserLean'
