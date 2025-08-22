@@ -1,34 +1,44 @@
-scalar Date
-scalar ObjectId
-
 type Query {
-  health: String!
-  user(id: ObjectId!): User
+  user(id: ObjectId!): UserResult!
   users: [User!]!
-  habit(id: ObjectId!): Habit
-  habits: [Habit]!
-  habitsByUser(userId: ObjectId!): [Habit!]!
+  habit(id: ObjectId!): HabitResult!
+  habits(userId: ObjectId!): [Habit!]!
+  habitLogs(habitId: ObjectId!): [HabitLog!]!
 }
 
 type Mutation {
-  createUser(input: CreateUser!): User!
-  deleteUser(id: ObjectId!): UserUnion!
+  createUser(input: CreateUser!): CreateUserResult!
+  deleteUser(id: ObjectId!): UserResult!
   updateUser(
     id: ObjectId!
     username: String
     firstName: String
     lastName: String
-  ): UserUnion!
-  createHabit(input: CreateHabit!): Habit!
-  logHabit(
-    userId: ObjectId!
-    habitId: ObjectId!
-    status: Status
-  ): LogHabitUnion!
+  ): UserResult!
+  createHabit(input: CreateHabit!): CreteHabitResult!
+  deleteHabit(id: ObjectId!): HabitResult!
+  createHabitLog(habitId: ObjectId!, status: Status): HabitLogResult!
 }
 
-union UserUnion = User | NotFoundError
-union LogHabitUnion = HabitLog | HabitLogAlreadyExists | NotFoundError
+# MARK: ----- Scalars -----
+
+scalar Date
+scalar ObjectId
+
+# MARK: ----- Union results -----
+
+union UserResult = User | UserNotFoundError
+union CreateUserResult = User | UserAlreadyExistsError
+
+union HabitResult = Habit | HabitNotFoundError | UserNotFoundError
+union CreteHabitResult = Habit | UserNotFoundError | HabitAlreadyExistsError
+
+union HabitLogResult =
+    HabitLog
+  | HabitNotFoundError
+  | HabitLogAlreadyExistsError
+
+# MARK: ----- Enums -----
 
 enum Status {
   COMPLETED
@@ -41,27 +51,13 @@ enum Regularity {
   MONTHLY
 }
 
+# MARK: ----- Inputs -----
+
 input CreateUser {
   email: String!
   username: String!
   firstName: String
   lastName: String
-}
-
-type User {
-  id: ObjectId!
-  email: String!
-  username: String!
-  firstName: String
-  lastName: String
-  createdAt: Date!
-  updatedAt: Date
-  habits: [Habit!]!
-}
-
-type NotFoundError {
-  id: ObjectId!
-  message: String!
 }
 
 input CreateHabit {
@@ -71,6 +67,39 @@ input CreateHabit {
   regularity: Regularity
 }
 
+# MARK: ----- Errors -----
+
+type UserNotFoundError {
+  _: Boolean
+}
+type UserAlreadyExistsError {
+  _: Boolean
+}
+
+type HabitNotFoundError {
+  _: Boolean
+}
+type HabitAlreadyExistsError {
+  _: Boolean
+}
+
+type HabitLogAlreadyExistsError {
+  _: Boolean
+}
+
+# MARK: ----- Entities -----
+
+type User {
+  id: ObjectId!
+  email: String!
+  username: String!
+  firstName: String
+  lastName: String
+  createdAt: Date!
+  updatedAt: Date!
+  habits: [Habit!]!
+}
+
 type Habit {
   id: ObjectId!
   userId: ObjectId!
@@ -78,7 +107,7 @@ type Habit {
   description: String
   regularity: Regularity
   createdAt: Date!
-  logs: [HabitLog!]!
+  habitLogs: [HabitLog!]!
 }
 
 type HabitLog {
@@ -86,14 +115,4 @@ type HabitLog {
   habitId: ObjectId!
   status: Status
   createdAt: Date!
-}
-
-type HabitLogAlreadyExists {
-  logId: ObjectId
-  message: String!
-}
-
-type UserNotFoundError {
-  userId: ObjectId!
-  message: String!
 }
