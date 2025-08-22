@@ -6,10 +6,8 @@ const UserSchema = new Schema(
     username: { type: String, required: true, trim: true, unique: true },
     firstName: { type: String, trim: true },
     lastName: { type: String, trim: true },
-    createdAt: { type: Date, default: () => new Date() },
-    updatedAt: { type: Date, default: () => new Date() },
   },
-  { versionKey: false },
+  { versionKey: false, timestamps: true },
 )
 
 export type UserDoc = InferSchemaType<typeof UserSchema> & {

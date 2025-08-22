@@ -14,9 +14,8 @@ const HabitLogSchema = new Schema(
       required: true,
       default: 'COMPLETED',
     },
-    createdAt: { type: Date, default: () => new Date() },
   },
-  { versionKey: false },
+  { versionKey: false, timestamps: true },
 )
 
 HabitLogSchema.index({ habitId: 1, createdAt: 1 }, { unique: true })
