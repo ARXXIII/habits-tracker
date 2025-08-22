@@ -4,58 +4,55 @@ import type { MutationResolvers } from '../../__generated__/types'
 export const UserMutation: MutationResolvers = {
   createUser: async (_p, { input }) => {
     try {
-      const doc = await User.create({
+      const user = await User.create({
         username: input.username.trim(),
-        email: input.email.trim(),
+        email: input.email.trim().toLowerCase(),
         firstName: input.firstName?.trim(),
         lastName: input.lastName?.trim(),
       })
-      return doc.toObject()
-    } catch (err) {
+      return {
+        __typename: 'User',
+        ...user.toObject(),
+      }
+    } catch (err: any) {
+      if (err.code === 11000) {
+        return {
+          __typename: 'UserAlreadyExistsError',
+        }
+      }
       throw err
     }
   },
   deleteUser: async (_p, { id }) => {
-    try {
-      const user = await User.findByIdAndDelete(id)
-      if (!user) {
-        return {
-          __typename: 'NotFoundError',
-          message: 'User not found',
-          id,
-        }
-      }
-
+    const user = await User.findByIdAndDelete(id)
+    if (!user) {
       return {
-        __typename: 'User',
-        ...user.toObject(),
+        __typename: 'UserNotFoundError',
       }
-    } catch (err) {
-      throw err
+    }
+
+    return {
+      __typename: 'User',
+      ...user.toObject(),
     }
   },
   updateUser: async (_p, { id, username, firstName, lastName }) => {
-    try {
-      const user = await User.findByIdAndUpdate(id, {
-        username: username?.trim(),
-        firstName: firstName?.trim(),
-        lastName: lastName?.trim(),
-      })
+    const user = await User.findByIdAndUpdate(id, {
+      username: username?.trim(),
+      firstName: firstName?.trim(),
+      lastName: lastName?.trim(),
+      updatedAt: new Date(),
+    })
 
-      if (!user) {
-        return {
-          __typename: 'NotFoundError',
-          message: 'User not found',
-          id,
-        }
-      }
-
+    if (!user) {
       return {
-        __typename: 'User',
-        ...user.toObject(),
+        __typename: 'UserNotFoundError',
       }
-    } catch (err) {
-      throw err
+    }
+
+    return {
+      __typename: 'User',
+      ...user.toObject(),
     }
   },
 }

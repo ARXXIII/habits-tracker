@@ -1,9 +1,20 @@
 import { Habit } from '../../models/habit'
+import { HabitLog } from '../../models/habit-log'
 import type { QueryResolvers } from '../../__generated__/types'
 
 export const HabitQuery: QueryResolvers = {
-  health: () => 'ok',
-  habit: async (_p, { id }) => Habit.findById(id).lean() ?? null,
-  habits: async () => Habit.find().lean(),
-  habitsByUser: async (_p, { userId }) => Habit.find({ userId }).lean(),
+  habit: async (_p, { id }) => {
+    const habit = await Habit.findById(id)
+    if (!habit) {
+      return {
+        __typename: 'HabitNotFoundError',
+      }
+    }
+    return {
+      __typename: 'Habit',
+      ...habit.toObject(),
+    }
+  },
+  habits: async (_p, { userId }) => Habit.find({ userId }).lean(),
+  habitLogs: async (_p, { habitId }) => HabitLog.find({ habitId }).lean(),
 }
