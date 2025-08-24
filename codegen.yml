@@ -5,7 +5,7 @@ generates:
       - typescript
       - typescript-resolvers
     config:
-      contextType: '../types#GraphQLContext'
+      contextType: '../context#GraphQLContext'
       useTypeImports: true
       scalars:
         Date: string
