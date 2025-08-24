@@ -24,6 +24,14 @@ export function requireAuth(ctx: GraphQLContext): UserDoc {
   return ctx.user
 }
 
+function extractAuthToken(authHeader: string | null): string | null {
+  if (!authHeader) return null
+  const header = authHeader.trim()
+  if (!header) return null
+  const match = /^Bearer\s+(.+)$/i.exec(header)
+  return match ? match[1].trim() : header
+}
+
 export async function createContext({
   request,
   response,
@@ -31,16 +39,16 @@ export async function createContext({
   request: Request
   response: Response
 }): Promise<GraphQLContext> {
-  const authHeader = request.headers.get('authorization') ?? ''
+  const authHeader = request.headers.get('authorization')
   let user: UserDoc | null = null
 
-  if (authHeader.startsWith('Bearer ')) {
+  const token = extractAuthToken(authHeader)
+  if (token) {
     try {
-      const token = authHeader.slice(7)
       const payload = verifyToken(token)
-      user = (await User.findById(payload.userId).lean()) as any
-    } catch {
-      user = null
+      user = await User.findById(payload.userId).lean()
+    } catch (err) {
+      throw new GraphQLError(`${err}`)
     }
   }
 
