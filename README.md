@@ -23,7 +23,11 @@ MONGO_INITDB_ROOT_USERNAME=mongoadmin
 MONGO_INITDB_ROOT_PASSWORD=mongopassword
 MONGO_DB=habitsdb
 MONGO_URI=mongodb://mongoadmin:mongopassword@mongo:27017/habitsdb?authSource=admin
+
 PORT=4000
+
+JWT_SECRET=
+JWT_REFRESH_SECRET=
 ```
 
 ---
