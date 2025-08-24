@@ -2,8 +2,15 @@ import { Schema, model, type InferSchemaType, Types } from 'mongoose'
 
 const UserSchema = new Schema(
   {
-    email: { type: String, required: true, trim: true, unique: true },
-    username: { type: String, required: true, trim: true, unique: true },
+    email: {
+      type: String,
+      required: true,
+      trim: true,
+      unique: true,
+      index: true,
+    },
+    password: { type: String, required: true, trim: true },
+    username: { type: String, trim: true, unique: true },
     firstName: { type: String, trim: true },
     lastName: { type: String, trim: true },
   },
