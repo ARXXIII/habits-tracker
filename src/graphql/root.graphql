@@ -1,5 +1,5 @@
 type Query {
-  user(id: ObjectId!): UserResult!
+  user: UserResult!
   users: [User!]!
   habit(id: ObjectId!): HabitResult!
   habits(userId: ObjectId!): [Habit!]!
@@ -7,16 +7,17 @@ type Query {
 }
 
 type Mutation {
-  createUser(input: CreateUser!): CreateUserResult!
-  deleteUser(id: ObjectId!): UserResult!
-  updateUser(
-    id: ObjectId!
-    username: String
-    firstName: String
-    lastName: String
-  ): UserResult!
-  createHabit(input: CreateHabit!): CreteHabitResult!
-  deleteHabit(id: ObjectId!): HabitResult!
+  register(input: RegisterInput!): RegisterResult!
+  login(input: LoginInput!): LoginResult!
+  refreshToken: RefreshTokenResult!
+  logout: Boolean!
+
+  deleteUser: UserResult!
+  updateUser(username: String, firstName: String, lastName: String): UserResult!
+
+  createHabit(input: CreateHabitInput!): CreteHabitResult!
+  deleteHabit: DeleteHabitResult!
+
   createHabitLog(habitId: ObjectId!, status: Status): HabitLogResult!
 }
 
@@ -27,10 +28,15 @@ scalar ObjectId
 
 # MARK: ----- Union results -----
 
+union RefreshTokenResult = RefreshPayload | NoRefreshTokenError
+
+union RegisterResult = AuthPayload | UserAlreadyExistsError
+union LoginResult = AuthPayload | UserNotFoundError
+
 union UserResult = User | UserNotFoundError
-union CreateUserResult = User | UserAlreadyExistsError
 
 union HabitResult = Habit | HabitNotFoundError | UserNotFoundError
+union DeleteHabitResult = Habit | HabitNotFoundError | UserNotFoundError
 union CreteHabitResult = Habit | UserNotFoundError | HabitAlreadyExistsError
 
 union HabitLogResult =
@@ -53,21 +59,27 @@ enum Regularity {
 
 # MARK: ----- Inputs -----
 
-input CreateUser {
+input RegisterInput {
   email: String!
-  username: String!
-  firstName: String
-  lastName: String
+  password: String!
 }
 
-input CreateHabit {
-  userId: ObjectId!
+input LoginInput {
+  email: String!
+  password: String!
+}
+
+input CreateHabitInput {
   title: String!
   description: String
   regularity: Regularity
 }
 
 # MARK: ----- Errors -----
+
+type NoRefreshTokenError {
+  _: Boolean
+}
 
 type UserNotFoundError {
   _: Boolean
@@ -92,12 +104,21 @@ type HabitLogAlreadyExistsError {
 type User {
   id: ObjectId!
   email: String!
-  username: String!
+  username: String
   firstName: String
   lastName: String
   createdAt: Date!
   updatedAt: Date!
   habits: [Habit!]!
+}
+
+type AuthPayload {
+  user: User!
+  token: String!
+}
+
+type RefreshPayload {
+  token: String!
 }
 
 type Habit {
