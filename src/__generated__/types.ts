@@ -2,7 +2,7 @@ import type { GraphQLResolveInfo, GraphQLScalarType, GraphQLScalarTypeConfig } f
 import type { HabitLean } from '../models/habit';
 import type { HabitLogLean } from '../models/habit-log';
 import type { UserLean } from '../models/user';
-import type { GraphQLContext } from '../types';
+import type { GraphQLContext } from '../context';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -10,6 +10,7 @@ export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: 
 export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
 export type MakeEmpty<T extends { [key: string]: unknown }, K extends keyof T> = { [_ in K]?: never };
 export type Incremental<T> = T | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
+export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 export type RequireFields<T, K extends keyof T> = Omit<T, K> & { [P in K]-?: NonNullable<T[P]> };
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
@@ -22,23 +23,21 @@ export type Scalars = {
   ObjectId: { input: string; output: string; }
 };
 
-export type CreateHabit = {
+export type AuthPayload = {
+  __typename?: 'AuthPayload';
+  token: Scalars['String']['output'];
+  user: User;
+};
+
+export type CreateHabitInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   regularity?: InputMaybe<Regularity>;
   title: Scalars['String']['input'];
-  userId: Scalars['ObjectId']['input'];
 };
-
-export type CreateUser = {
-  email: Scalars['String']['input'];
-  firstName?: InputMaybe<Scalars['String']['input']>;
-  lastName?: InputMaybe<Scalars['String']['input']>;
-  username: Scalars['String']['input'];
-};
-
-export type CreateUserResult = User | UserAlreadyExistsError;
 
 export type CreteHabitResult = Habit | HabitAlreadyExistsError | UserNotFoundError;
+
+export type DeleteHabitResult = Habit | HabitNotFoundError | UserNotFoundError;
 
 export type Habit = {
   __typename?: 'Habit';
@@ -78,19 +77,29 @@ export type HabitNotFoundError = {
 
 export type HabitResult = Habit | HabitNotFoundError | UserNotFoundError;
 
+export type LoginInput = {
+  email: Scalars['String']['input'];
+  password: Scalars['String']['input'];
+};
+
+export type LoginResult = AuthPayload | UserNotFoundError;
+
 export type Mutation = {
   __typename?: 'Mutation';
   createHabit: CreteHabitResult;
   createHabitLog: HabitLogResult;
-  createUser: CreateUserResult;
-  deleteHabit: HabitResult;
+  deleteHabit: DeleteHabitResult;
   deleteUser: UserResult;
+  login: LoginResult;
+  logout: Scalars['Boolean']['output'];
+  refreshToken: RefreshTokenResult;
+  register: RegisterResult;
   updateUser: UserResult;
 };
 
 
 export type MutationCreateHabitArgs = {
-  input: CreateHabit;
+  input: CreateHabitInput;
 };
 
 
@@ -100,26 +109,25 @@ export type MutationCreateHabitLogArgs = {
 };
 
 
-export type MutationCreateUserArgs = {
-  input: CreateUser;
+export type MutationLoginArgs = {
+  input: LoginInput;
 };
 
 
-export type MutationDeleteHabitArgs = {
-  id: Scalars['ObjectId']['input'];
-};
-
-
-export type MutationDeleteUserArgs = {
-  id: Scalars['ObjectId']['input'];
+export type MutationRegisterArgs = {
+  input: RegisterInput;
 };
 
 
 export type MutationUpdateUserArgs = {
   firstName?: InputMaybe<Scalars['String']['input']>;
-  id: Scalars['ObjectId']['input'];
   lastName?: InputMaybe<Scalars['String']['input']>;
   username?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type NoRefreshTokenError = {
+  __typename?: 'NoRefreshTokenError';
+  _?: Maybe<Scalars['Boolean']['output']>;
 };
 
 export type Query = {
@@ -146,10 +154,19 @@ export type QueryHabitsArgs = {
   userId: Scalars['ObjectId']['input'];
 };
 
-
-export type QueryUserArgs = {
-  id: Scalars['ObjectId']['input'];
+export type RefreshPayload = {
+  __typename?: 'RefreshPayload';
+  token: Scalars['String']['output'];
 };
+
+export type RefreshTokenResult = NoRefreshTokenError | RefreshPayload;
+
+export type RegisterInput = {
+  email: Scalars['String']['input'];
+  password: Scalars['String']['input'];
+};
+
+export type RegisterResult = AuthPayload | UserAlreadyExistsError;
 
 export enum Regularity {
   Daily = 'DAILY',
@@ -171,7 +188,7 @@ export type User = {
   id: Scalars['ObjectId']['output'];
   lastName?: Maybe<Scalars['String']['output']>;
   updatedAt: Scalars['Date']['output'];
-  username: Scalars['String']['output'];
+  username?: Maybe<Scalars['String']['output']>;
 };
 
 export type UserAlreadyExistsError = {
@@ -255,22 +272,25 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 
 /** Mapping of union types */
 export type ResolversUnionTypes<_RefType extends Record<string, unknown>> = {
-  CreateUserResult: ( UserLean ) | ( UserAlreadyExistsError );
   CreteHabitResult: ( HabitLean ) | ( HabitAlreadyExistsError ) | ( UserNotFoundError );
+  DeleteHabitResult: ( HabitLean ) | ( HabitNotFoundError ) | ( UserNotFoundError );
   HabitLogResult: ( HabitLogLean ) | ( HabitLogAlreadyExistsError ) | ( HabitNotFoundError );
   HabitResult: ( HabitLean ) | ( HabitNotFoundError ) | ( UserNotFoundError );
+  LoginResult: ( Omit<AuthPayload, 'user'> & { user: _RefType['User'] } ) | ( UserNotFoundError );
+  RefreshTokenResult: ( NoRefreshTokenError ) | ( RefreshPayload );
+  RegisterResult: ( Omit<AuthPayload, 'user'> & { user: _RefType['User'] } ) | ( UserAlreadyExistsError );
   UserResult: ( UserLean ) | ( UserNotFoundError );
 };
 
 
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = {
+  AuthPayload: ResolverTypeWrapper<Omit<AuthPayload, 'user'> & { user: ResolversTypes['User'] }>;
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
-  CreateHabit: CreateHabit;
-  CreateUser: CreateUser;
-  CreateUserResult: ResolverTypeWrapper<ResolversUnionTypes<ResolversTypes>['CreateUserResult']>;
+  CreateHabitInput: CreateHabitInput;
   CreteHabitResult: ResolverTypeWrapper<ResolversUnionTypes<ResolversTypes>['CreteHabitResult']>;
   Date: ResolverTypeWrapper<Scalars['Date']['output']>;
+  DeleteHabitResult: ResolverTypeWrapper<ResolversUnionTypes<ResolversTypes>['DeleteHabitResult']>;
   Habit: ResolverTypeWrapper<HabitLean>;
   HabitAlreadyExistsError: ResolverTypeWrapper<HabitAlreadyExistsError>;
   HabitLog: ResolverTypeWrapper<HabitLogLean>;
@@ -278,9 +298,16 @@ export type ResolversTypes = {
   HabitLogResult: ResolverTypeWrapper<ResolversUnionTypes<ResolversTypes>['HabitLogResult']>;
   HabitNotFoundError: ResolverTypeWrapper<HabitNotFoundError>;
   HabitResult: ResolverTypeWrapper<ResolversUnionTypes<ResolversTypes>['HabitResult']>;
+  LoginInput: LoginInput;
+  LoginResult: ResolverTypeWrapper<ResolversUnionTypes<ResolversTypes>['LoginResult']>;
   Mutation: ResolverTypeWrapper<{}>;
+  NoRefreshTokenError: ResolverTypeWrapper<NoRefreshTokenError>;
   ObjectId: ResolverTypeWrapper<Scalars['ObjectId']['output']>;
   Query: ResolverTypeWrapper<{}>;
+  RefreshPayload: ResolverTypeWrapper<RefreshPayload>;
+  RefreshTokenResult: ResolverTypeWrapper<ResolversUnionTypes<ResolversTypes>['RefreshTokenResult']>;
+  RegisterInput: RegisterInput;
+  RegisterResult: ResolverTypeWrapper<ResolversUnionTypes<ResolversTypes>['RegisterResult']>;
   Regularity: Regularity;
   Status: Status;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
@@ -292,12 +319,12 @@ export type ResolversTypes = {
 
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = {
+  AuthPayload: Omit<AuthPayload, 'user'> & { user: ResolversParentTypes['User'] };
   Boolean: Scalars['Boolean']['output'];
-  CreateHabit: CreateHabit;
-  CreateUser: CreateUser;
-  CreateUserResult: ResolversUnionTypes<ResolversParentTypes>['CreateUserResult'];
+  CreateHabitInput: CreateHabitInput;
   CreteHabitResult: ResolversUnionTypes<ResolversParentTypes>['CreteHabitResult'];
   Date: Scalars['Date']['output'];
+  DeleteHabitResult: ResolversUnionTypes<ResolversParentTypes>['DeleteHabitResult'];
   Habit: HabitLean;
   HabitAlreadyExistsError: HabitAlreadyExistsError;
   HabitLog: HabitLogLean;
@@ -305,9 +332,16 @@ export type ResolversParentTypes = {
   HabitLogResult: ResolversUnionTypes<ResolversParentTypes>['HabitLogResult'];
   HabitNotFoundError: HabitNotFoundError;
   HabitResult: ResolversUnionTypes<ResolversParentTypes>['HabitResult'];
+  LoginInput: LoginInput;
+  LoginResult: ResolversUnionTypes<ResolversParentTypes>['LoginResult'];
   Mutation: {};
+  NoRefreshTokenError: NoRefreshTokenError;
   ObjectId: Scalars['ObjectId']['output'];
   Query: {};
+  RefreshPayload: RefreshPayload;
+  RefreshTokenResult: ResolversUnionTypes<ResolversParentTypes>['RefreshTokenResult'];
+  RegisterInput: RegisterInput;
+  RegisterResult: ResolversUnionTypes<ResolversParentTypes>['RegisterResult'];
   String: Scalars['String']['output'];
   User: UserLean;
   UserAlreadyExistsError: UserAlreadyExistsError;
@@ -315,8 +349,10 @@ export type ResolversParentTypes = {
   UserResult: ResolversUnionTypes<ResolversParentTypes>['UserResult'];
 };
 
-export type CreateUserResultResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['CreateUserResult'] = ResolversParentTypes['CreateUserResult']> = {
-  __resolveType: TypeResolveFn<'User' | 'UserAlreadyExistsError', ParentType, ContextType>;
+export type AuthPayloadResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['AuthPayload'] = ResolversParentTypes['AuthPayload']> = {
+  token?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  user?: Resolver<ResolversTypes['User'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export type CreteHabitResultResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['CreteHabitResult'] = ResolversParentTypes['CreteHabitResult']> = {
@@ -326,6 +362,10 @@ export type CreteHabitResultResolvers<ContextType = GraphQLContext, ParentType e
 export interface DateScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['Date'], any> {
   name: 'Date';
 }
+
+export type DeleteHabitResultResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['DeleteHabitResult'] = ResolversParentTypes['DeleteHabitResult']> = {
+  __resolveType: TypeResolveFn<'Habit' | 'HabitNotFoundError' | 'UserNotFoundError', ParentType, ContextType>;
+};
 
 export type HabitResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['Habit'] = ResolversParentTypes['Habit']> = {
   createdAt?: Resolver<ResolversTypes['Date'], ParentType, ContextType>;
@@ -369,13 +409,25 @@ export type HabitResultResolvers<ContextType = GraphQLContext, ParentType extend
   __resolveType: TypeResolveFn<'Habit' | 'HabitNotFoundError' | 'UserNotFoundError', ParentType, ContextType>;
 };
 
+export type LoginResultResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['LoginResult'] = ResolversParentTypes['LoginResult']> = {
+  __resolveType: TypeResolveFn<'AuthPayload' | 'UserNotFoundError', ParentType, ContextType>;
+};
+
 export type MutationResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   createHabit?: Resolver<ResolversTypes['CreteHabitResult'], ParentType, ContextType, RequireFields<MutationCreateHabitArgs, 'input'>>;
   createHabitLog?: Resolver<ResolversTypes['HabitLogResult'], ParentType, ContextType, RequireFields<MutationCreateHabitLogArgs, 'habitId'>>;
-  createUser?: Resolver<ResolversTypes['CreateUserResult'], ParentType, ContextType, RequireFields<MutationCreateUserArgs, 'input'>>;
-  deleteHabit?: Resolver<ResolversTypes['HabitResult'], ParentType, ContextType, RequireFields<MutationDeleteHabitArgs, 'id'>>;
-  deleteUser?: Resolver<ResolversTypes['UserResult'], ParentType, ContextType, RequireFields<MutationDeleteUserArgs, 'id'>>;
-  updateUser?: Resolver<ResolversTypes['UserResult'], ParentType, ContextType, RequireFields<MutationUpdateUserArgs, 'id'>>;
+  deleteHabit?: Resolver<ResolversTypes['DeleteHabitResult'], ParentType, ContextType>;
+  deleteUser?: Resolver<ResolversTypes['UserResult'], ParentType, ContextType>;
+  login?: Resolver<ResolversTypes['LoginResult'], ParentType, ContextType, RequireFields<MutationLoginArgs, 'input'>>;
+  logout?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  refreshToken?: Resolver<ResolversTypes['RefreshTokenResult'], ParentType, ContextType>;
+  register?: Resolver<ResolversTypes['RegisterResult'], ParentType, ContextType, RequireFields<MutationRegisterArgs, 'input'>>;
+  updateUser?: Resolver<ResolversTypes['UserResult'], ParentType, ContextType, Partial<MutationUpdateUserArgs>>;
+};
+
+export type NoRefreshTokenErrorResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['NoRefreshTokenError'] = ResolversParentTypes['NoRefreshTokenError']> = {
+  _?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
 export interface ObjectIdScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['ObjectId'], any> {
@@ -386,8 +438,21 @@ export type QueryResolvers<ContextType = GraphQLContext, ParentType extends Reso
   habit?: Resolver<ResolversTypes['HabitResult'], ParentType, ContextType, RequireFields<QueryHabitArgs, 'id'>>;
   habitLogs?: Resolver<Array<ResolversTypes['HabitLog']>, ParentType, ContextType, RequireFields<QueryHabitLogsArgs, 'habitId'>>;
   habits?: Resolver<Array<ResolversTypes['Habit']>, ParentType, ContextType, RequireFields<QueryHabitsArgs, 'userId'>>;
-  user?: Resolver<ResolversTypes['UserResult'], ParentType, ContextType, RequireFields<QueryUserArgs, 'id'>>;
+  user?: Resolver<ResolversTypes['UserResult'], ParentType, ContextType>;
   users?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType>;
+};
+
+export type RefreshPayloadResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['RefreshPayload'] = ResolversParentTypes['RefreshPayload']> = {
+  token?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type RefreshTokenResultResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['RefreshTokenResult'] = ResolversParentTypes['RefreshTokenResult']> = {
+  __resolveType: TypeResolveFn<'NoRefreshTokenError' | 'RefreshPayload', ParentType, ContextType>;
+};
+
+export type RegisterResultResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['RegisterResult'] = ResolversParentTypes['RegisterResult']> = {
+  __resolveType: TypeResolveFn<'AuthPayload' | 'UserAlreadyExistsError', ParentType, ContextType>;
 };
 
 export type UserResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['User'] = ResolversParentTypes['User']> = {
@@ -398,7 +463,7 @@ export type UserResolvers<ContextType = GraphQLContext, ParentType extends Resol
   id?: Resolver<ResolversTypes['ObjectId'], ParentType, ContextType>;
   lastName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   updatedAt?: Resolver<ResolversTypes['Date'], ParentType, ContextType>;
-  username?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  username?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -417,9 +482,10 @@ export type UserResultResolvers<ContextType = GraphQLContext, ParentType extends
 };
 
 export type Resolvers<ContextType = GraphQLContext> = {
-  CreateUserResult?: CreateUserResultResolvers<ContextType>;
+  AuthPayload?: AuthPayloadResolvers<ContextType>;
   CreteHabitResult?: CreteHabitResultResolvers<ContextType>;
   Date?: GraphQLScalarType;
+  DeleteHabitResult?: DeleteHabitResultResolvers<ContextType>;
   Habit?: HabitResolvers<ContextType>;
   HabitAlreadyExistsError?: HabitAlreadyExistsErrorResolvers<ContextType>;
   HabitLog?: HabitLogResolvers<ContextType>;
@@ -427,9 +493,14 @@ export type Resolvers<ContextType = GraphQLContext> = {
   HabitLogResult?: HabitLogResultResolvers<ContextType>;
   HabitNotFoundError?: HabitNotFoundErrorResolvers<ContextType>;
   HabitResult?: HabitResultResolvers<ContextType>;
+  LoginResult?: LoginResultResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
+  NoRefreshTokenError?: NoRefreshTokenErrorResolvers<ContextType>;
   ObjectId?: GraphQLScalarType;
   Query?: QueryResolvers<ContextType>;
+  RefreshPayload?: RefreshPayloadResolvers<ContextType>;
+  RefreshTokenResult?: RefreshTokenResultResolvers<ContextType>;
+  RegisterResult?: RegisterResultResolvers<ContextType>;
   User?: UserResolvers<ContextType>;
   UserAlreadyExistsError?: UserAlreadyExistsErrorResolvers<ContextType>;
   UserNotFoundError?: UserNotFoundErrorResolvers<ContextType>;
