@@ -3,10 +3,13 @@ import { Habit } from '../../models/habit'
 import { HabitLog } from '../../models/habit-log'
 import { endOfDay, startOfDay } from '../../utils/date'
 import type { MutationResolvers } from '../../__generated__/types'
+import { requireAuth } from '../../context'
 
 export const HabitMutation: MutationResolvers = {
-  createHabit: async (_p, { input }) => {
-    const user = await User.findById(input.userId)
+  createHabit: async (_p, { input }, ctx) => {
+    const authUser = requireAuth(ctx)
+
+    const user = await User.findById(authUser._id)
     if (!user) {
       return {
         __typename: 'UserNotFoundError',
@@ -14,7 +17,7 @@ export const HabitMutation: MutationResolvers = {
     }
 
     const habit = await Habit.create({
-      userId: input.userId,
+      userId: user.id,
       title: input?.title.trim(),
       description: input?.description?.trim(),
       regularity: input?.regularity,

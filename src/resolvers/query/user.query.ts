@@ -1,9 +1,12 @@
 import { User } from '../../models/user'
 import type { QueryResolvers } from '../../__generated__/types'
+import { requireAuth } from '../../context'
 
 export const UserQuery: QueryResolvers = {
-  user: async (_p, { id }) => {
-    const user = await User.findById(id)
+  user: async (_p, _args, ctx) => {
+    const authUser = requireAuth(ctx)
+
+    const user = await User.findById(authUser._id)
     if (!user) {
       return {
         __typename: 'UserNotFoundError',

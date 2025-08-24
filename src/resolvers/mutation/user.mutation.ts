@@ -1,30 +1,12 @@
 import { User } from '../../models/user'
+import { requireAuth } from '../../context'
 import type { MutationResolvers } from '../../__generated__/types'
 
 export const UserMutation: MutationResolvers = {
-  createUser: async (_p, { input }) => {
-    try {
-      const user = await User.create({
-        username: input.username.trim(),
-        email: input.email.trim().toLowerCase(),
-        firstName: input.firstName?.trim(),
-        lastName: input.lastName?.trim(),
-      })
-      return {
-        __typename: 'User',
-        ...user.toObject(),
-      }
-    } catch (err: any) {
-      if (err.code === 11000) {
-        return {
-          __typename: 'UserAlreadyExistsError',
-        }
-      }
-      throw err
-    }
-  },
-  deleteUser: async (_p, { id }) => {
-    const user = await User.findByIdAndDelete(id)
+  deleteUser: async (_p, _args, ctx) => {
+    const authUser = requireAuth(ctx)
+
+    const user = await User.findByIdAndDelete(authUser._id)
     if (!user) {
       return {
         __typename: 'UserNotFoundError',
@@ -36,12 +18,13 @@ export const UserMutation: MutationResolvers = {
       ...user.toObject(),
     }
   },
-  updateUser: async (_p, { id, username, firstName, lastName }) => {
-    const user = await User.findByIdAndUpdate(id, {
+  updateUser: async (_p, { username, firstName, lastName }, ctx) => {
+    const authUser = requireAuth(ctx)
+
+    const user = await User.findByIdAndUpdate(authUser._id, {
       username: username?.trim(),
       firstName: firstName?.trim(),
       lastName: lastName?.trim(),
-      updatedAt: new Date(),
     })
 
     if (!user) {
