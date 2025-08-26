@@ -27,7 +27,6 @@ MONGO_URI=mongodb://mongoadmin:mongopassword@mongo:27017/habitsdb?authSource=adm
 PORT=4000
 
 JWT_SECRET=
-JWT_REFRESH_SECRET=
 ```
 
 ---

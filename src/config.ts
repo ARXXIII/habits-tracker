@@ -4,5 +4,4 @@ export const config = {
   port: Number(process.env.PORT ?? 4000),
   mongoUrl: process.env.MONGO_URL!,
   jwtSecret: process.env.JWT_SECRET!,
-  jwtRefresh: process.env.JWT_REFRESH_SECRET!,
 }
