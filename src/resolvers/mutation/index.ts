@@ -1,4 +1,4 @@
-import { AuthMutation } from './auth'
+import { AuthMutation } from './auth.mutation'
 import { UserMutation } from './user.mutation'
 import { HabitMutation } from './habit.mutation'
 
