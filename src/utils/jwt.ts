@@ -14,11 +14,3 @@ export const signToken = (userId: string) => {
 export const verifyToken = (token: string) => {
   return jwt.verify(token, config.jwtSecret) as JwtPayload
 }
-
-export function signRefreshToken(userId: string) {
-  return jwt.sign({ userId }, config.jwtRefresh, { expiresIn: '7d' })
-}
-
-export function verifyRefreshToken(token: string) {
-  return jwt.verify(token, config.jwtRefresh) as { userId: string }
-}
