@@ -16,6 +16,9 @@ const HabitSchema = new Schema(
       required: true,
       default: 'DAILY',
     },
+    currentStreak: { type: Number, default: 0 },
+    longestStreak: { type: Number, default: 0 },
+    lastCompleted: { type: Date, default: null },
   },
   { versionKey: false, timestamps: true },
 )

@@ -1,9 +1,13 @@
 import { User } from '../../models/user'
 import { Habit } from '../../models/habit'
 import { HabitLog } from '../../models/habit-log'
-import { endOfDay, startOfDay } from '../../utils/date'
-import type { MutationResolvers } from '../../__generated__/types'
+
 import { requireAuth } from '../../context'
+
+import { endOfDay, startOfDay } from '../../utils/date'
+import { updateHabitStreak } from '../../utils/update-habit-streak'
+
+import type { MutationResolvers } from '../../__generated__/types'
 
 export const HabitMutation: MutationResolvers = {
   createHabit: async (_p, { input }, ctx) => {
@@ -54,6 +58,10 @@ export const HabitMutation: MutationResolvers = {
       habitId,
       status,
     })
+
+    const today = startOfDay(new Date())
+    updateHabitStreak(habit, today, status)
+    await habit.save()
 
     return {
       __typename: 'HabitLog',
