@@ -49,3 +49,17 @@ export function getPeriod(habit: HabitDoc, now: Date) {
       throw new Error(`Unknown regularity: ${habit.regularity}`)
   }
 }
+
+export function isSameDay(d1: Date, d2: Date): boolean {
+  return (
+    d1.getFullYear() === d2.getFullYear() &&
+    d1.getMonth() === d2.getMonth() &&
+    d1.getDate() === d2.getDate()
+  )
+}
+
+export function subDays(date: Date, days: number): Date {
+  const d = new Date(date)
+  d.setDate(d.getDate() - days)
+  return startOfDay(d)
+}
