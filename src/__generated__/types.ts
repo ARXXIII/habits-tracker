@@ -165,7 +165,7 @@ export type QueryHabitLogsArgs = {
 
 
 export type QueryHabitsArgs = {
-  userId: Scalars['ObjectId']['input'];
+  userId?: InputMaybe<Scalars['ObjectId']['input']>;
 };
 
 export type RefreshPayload = {
@@ -469,7 +469,7 @@ export interface ObjectIdScalarConfig extends GraphQLScalarTypeConfig<ResolversT
 export type QueryResolvers<ContextType = GraphQLContext, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
   habit?: Resolver<ResolversTypes['HabitResult'], ParentType, ContextType, RequireFields<QueryHabitArgs, 'id'>>;
   habitLogs?: Resolver<Array<ResolversTypes['HabitLog']>, ParentType, ContextType, RequireFields<QueryHabitLogsArgs, 'habitId'>>;
-  habits?: Resolver<Array<ResolversTypes['Habit']>, ParentType, ContextType, RequireFields<QueryHabitsArgs, 'userId'>>;
+  habits?: Resolver<Array<ResolversTypes['Habit']>, ParentType, ContextType, Partial<QueryHabitsArgs>>;
   user?: Resolver<ResolversTypes['UserResult'], ParentType, ContextType>;
   users?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType>;
 };

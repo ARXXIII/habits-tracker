@@ -2,7 +2,7 @@ type Query {
   user: UserResult!
   users: [User!]!
   habit(id: ObjectId!): HabitResult!
-  habits(userId: ObjectId!): [Habit!]!
+  habits(userId: ObjectId): [Habit!]!
   habitLogs(habitId: ObjectId!): [HabitLog!]!
 }
 
