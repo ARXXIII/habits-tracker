@@ -40,8 +40,3 @@ export const rotateRefreshToken = async (token: string) => {
   await existing.deleteOne()
   return generateTokens(existing.userId.toString())
 }
-
-export const revokeToken = async (token: string) => {
-  await RefreshToken.deleteOne({ token })
-  return true
-}
