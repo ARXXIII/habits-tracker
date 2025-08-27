@@ -21,11 +21,15 @@ export const UserMutation: MutationResolvers = {
   updateUser: async (_p, { username, firstName, lastName }, ctx) => {
     const authUser = requireAuth(ctx)
 
-    const user = await User.findByIdAndUpdate(authUser._id, {
-      username: username?.trim(),
-      firstName: firstName?.trim(),
-      lastName: lastName?.trim(),
-    })
+    const user = await User.findByIdAndUpdate(
+      authUser._id,
+      {
+        username: username?.trim(),
+        firstName: firstName?.trim(),
+        lastName: lastName?.trim(),
+      },
+      { new: true },
+    )
 
     if (!user) {
       return {
