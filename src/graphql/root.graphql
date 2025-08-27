@@ -18,7 +18,7 @@ type Mutation {
   createHabit(input: CreateHabitInput!): CreteHabitResult!
   deleteHabit: DeleteHabitResult!
 
-  createHabitLog(habitId: ObjectId!, status: Status): HabitLogResult!
+  createHabitLog(habitId: ObjectId!, status: Status!): HabitLogResult!
 }
 
 # MARK: ----- Scalars -----
@@ -132,12 +132,14 @@ type Habit {
   description: String
   regularity: Regularity
   createdAt: Date!
+  currentStreak: Int!
+  longestStreak: Int!
   habitLogs: [HabitLog!]!
 }
 
 type HabitLog {
   id: ObjectId!
   habitId: ObjectId!
-  status: Status
+  status: Status!
   createdAt: Date!
 }
